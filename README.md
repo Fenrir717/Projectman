@@ -16,7 +16,7 @@ Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tig
 - Terinstal Web Server (CMS WordPress) dan Mail Server (Roundcube).
 - Layanan dilindungi oleh UFW dan WAF (ModSecurity2) untuk meningkatkan keamanan.
 - Akses SSH ditutup dan hanya dapat diakses melalui Port Knocking (Knockd) yang dikombinasikan dengan VPN Server (OpenVPN).
-- SSH hanya dapat diakses melalui VPN dengan IP VPN 20.10.20.1 pada interface tap0.
+- SSH hanya dapat diakses melalui VPN dengan Subnet VPN 20.10.20.0/24 pada interface tap0.
 - Interface tambahan untuk area lokal dengan IP 10.10.10.1, digunakan untuk komunikasi dengan VM3.
 - Akan ditambahkan Monitoring Log Server dengan Promtail & LOKI dan Rsyslog yang akan divisualisasikan dengan Grafana.
 - Penggunaan SSL Certificate pada layanan HTTP/Apache2 untuk mengamankan setiap halaman web. Web server menggunakan port 443, mail server (SMTPS 465 dan IMAPS 993), serta Grafana menggunakan HTTPS pada port 443.
