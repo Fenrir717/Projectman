@@ -1,6 +1,7 @@
 # Projectman-example
 
-**TOPOLOGY:**
+
+**TOPOLOGI:**
 ![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/fc2f674b-2b70-4379-8bb7-0940ea93da03)
 
 **SCENARIO:**
@@ -29,3 +30,130 @@ Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tig
 - Melakukan backup konfigurasi secara rutin dan sinkronisasi konfigurasi secara live dengan VM2.
 
 Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengimplementasikan praktik keamanan yang canggih seperti honeypot, port knocking, VPN, dan konfigurasi otomatis backup. Seluruh konfigurasi akan didokumentasikan dengan baik di dalam repositori ini untuk memudahkan pengelolaan dan pemeliharaan sistem keamanan.
+
+
+
+**Konfigurasi pada Setiap VM**
+1. [VM1](#Konfigurasi-Honeypot-pada-VM1)
+2. [VM2](#VM2)
+3. [VM3](#VM3)
+
+
+## 1. Konfigurasi Honeypot pada VM1
+
+### 1.1 Konfigurasi Adapter Network di VM1
+
+**Langkah 1: Buka direktori utama Konfigurasi Adapter
+```
+nano /etc/network/interfaces
+```
+**Langkah 2: Edit File Konfigurasi seperti ini**
+```
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface
+
+allow-hotplug enp0s3
+auto enp0s3
+iface enp0s3 inet dhcp
+
+auto enp0s8
+iface enp0s8 inet static
+ address 192.168.20.1
+ netmask 255.255.255.0
+
+```
+**Langkah 3: Restart Layanan Networking**
+```
+systemctl restart networking
+```
+
+### 1.2 Konfigurasi Honeypot
+
+**Langkah 1: Instalasi paket dan Depedensi yang dibutuhkan**
+```
+apt-get install postgresql
+apt-get install python3-psycopg2
+apt-get install libpq-dev
+apt install python3-pip -y
+apt install python3.11-venv
+```
+**Langkah 2: Instalasi Honeypots di virtual Environment Python3**
+```
+mkdir Honeypots
+python3 -m venv Honeypots
+cd Honeypots/
+source bin/activate
+pip3 install honeypots
+```
+**Langkah 3: Konfigurasi dan Running**
+```
+(Honeypots) root@VM1:~/Honeypots# honeypots -h
+Qeeqbox/honeypots customizable honeypots for monitoring network traffic, bots activities, and username\password
+credentials
+
+Arguments:
+  --setup               target honeypot E.g. ssh or you can have multiple E.g ssh,http,https
+  --list                list all available honeypots
+  --kill                kill all honeypots
+  --verbose             Print error msgs
+
+Honeypots options:
+  --ip                  Override the IP
+  --port                Override the Port (Do not use on multiple!)
+  --username            Override the username
+  --password            Override the password
+  --config              Use a config file for honeypots settings
+  --options             Extra options
+
+General options:
+  --termination-strategy {input,signal}
+                        Determines the strategy to terminate by
+  --test                Test a honeypot
+  --auto                Setup the honeypot with random port
+
+Chameleon:
+  --chameleon           reserved for chameleon project
+  --sniffer             sniffer - reserved for chameleon project
+  --iptables            iptables - reserved for chameleon project
+```
+Kita akan Running Honeypots sesuai sekenario saja yaitu SSH
+```
+python3 -m honeypots --setup ssh --username root --password root --port 22 --options interactive
+```
+
+### Konfigurasi Rules IPTABLES
+
+**Langkah 1: Instalasi paket iptables**
+```
+apt-get install iptables
+apt-get install iptables-persistent
+```
+**Langkah 2: Rule Iptables untuk menghubungkan VM2 ke internet**
+```
+iptables -t nat -A POSTROUTING -o enp0s3 -j MASQUERADE
+```
+**Langkah 3: Rule iptables untuk mengalihkan/meredirect paket yang masuk ke VM2 (IP 192.168.20.2) dengan tujuan port 22**
+```
+iptables -t nat -A PREROUTING -p tcp --dport 22 -j DNAT --to 192.168.20.1
+```
+**Langkah 4: Save Konfigurais iptables secara permanen dengan persistent**
+```
+iptables-save > /etc/iptables/rules.v4
+```
+or
+```
+dpkg-reconfigure iptables-persistent
+```
+
+
+
+
+
