@@ -206,6 +206,8 @@ Apa saja yang diKonfiguras?
 
 ### 3.8 Mengamankan Grafana dengan IP filtering dan SSL Cerfificate
 
+### 3.9 Instalasi dan Konfigurasi DNS Server(bind9)
+
 ### 4.0 Konfigurasi Server Backup VM3
 
 ### Konfigurasi Adapter Network VM3
