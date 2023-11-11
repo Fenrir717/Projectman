@@ -34,9 +34,9 @@ Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengim
 
 
 **Konfigurasi pada Setiap VM**
-1. [VM1](#Konfigurasi-Honeypot-pada-VM1)
-2. [VM2](#VM2)
-3. [VM3](#VM3)
+ [VM1](#1-Konfigurasi-Honeypot-pada-VM1)
+ [VM2](#2-Konfigurasi-Server-pada-VM2)
+ [VM3](#VM3)
 
 
 ## 1. Konfigurasi Honeypot pada VM1
@@ -153,7 +153,64 @@ or
 dpkg-reconfigure iptables-persistent
 ```
 
+## 2. Konfigurasi Server pada VM2
+
+### Konfigurasi Adapter Network VM2
+
+Apa saja yang diKonfiguras?
+
+1. Web Server 
+2. Mail Server 
+3. Database Server
+4. VPN Server
+5. DNS Server
+6. Port Knocking
+7. Monitoring Server
+
+### 2.1 Web Server
+
+### 2.2 Instalasi dan Konfigurasi Apache2
+
+### 2.3 Konfigurasi CMS Wordpress pada Apache2
+
+### 2.4 Konfigurasi WAF(Web Application Firewall)
+
+### 2.5 Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
+
+### 2.6 Instalasi SSL Certificate pada Web server(443 HTTPS)
 
 
+### 2.8 Mail Server
 
+### 2.9 Instalasi dan Konfigurasi Postfix dan Dovecot
+
+### 3.0 Konfigurasi Webmail Roundcube
+
+### 3.1 Mengamankan Roundcube secara Umum
+
+### 3.2 Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
+
+### 3.3 Database Server
+
+### 3.2 Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+
+### 3.3 Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+
+### 3.4 Instalasi dan Konfigurasi OPENVPN
+
+### 3.5 Instalasi dan Konfigurasi Port Knocking(Knockd)
+
+### 3.6 Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
+
+### 3.7 Visualisasi Log Ke Grafana
+
+### 3.8 Mengamankan Grafana dengan IP filtering dan SSL Cerfificate
+
+### 4.0 Konfigurasi Server Backup VM3
+
+### Konfigurasi Adapter Network VM3
+
+### 4.1 Instalasi Rsync
+
+### 4.2 Membuat Script Backup Konfigurasi secara Rutin
 
