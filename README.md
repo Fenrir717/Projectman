@@ -676,15 +676,15 @@ nano /etc/knockd.conf
         logfile = /var/log/knockd.log
 
 [openSSH]
-        sequence    = 3200,7600,11000
+        sequence    = 3200,7600,9900
         seq_timeout = 5
         command     = ufw allow from %IP% to any port 9029 comment 'Port Knocking Access'
         tcpflags    = syn
 
 [closeSSH]
-        sequence    = 11000,7600,3200
+        sequence    = 9900,7600,3200
         seq_timeout = 5
-        command     = ufw delete from %IP% to any port 9029 comment 'Port Knocking Access'
+        command     = ufw delete allow from %IP% to any port 9029 comment 'Port Knocking Access'
         tcpflags    = syn
 ```
 **Langkah 4: Buka Konfigurasi untuk listen Interface nya**
