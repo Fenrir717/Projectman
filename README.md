@@ -177,6 +177,40 @@ Apa saja yang diKonfiguras?
 
 ### 2.5 Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
 
+**Langkah 1: ke direktori a2site pada Apache2**
+```
+nano /etc/apache2/sites-available/000-default.conf
+```
+**Langkah 2: Edit Konfigurasi**
+```
+<VirtualHost *:80>
+    ServerAdmin fenrir@mail.projectman.my.id
+    DocumentRoot /var/www/html
+
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+
+    <Directory "/var/www/html">
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    <Files "wp-config.php">
+        <RequireAny>
+            Require ip 20.10.20.0/24
+            Require host projectman.my.id
+        </RequireAny>
+    </Files>
+
+
+    <IfModule mod_headers.c>
+        Header set X-XSS-Protection "1; mode=block"
+    </IfModule>
+</VirtualHost>
+```
+konfigurasi ini akan memblokir akses ke dirktori yang paling penting yaitu "wp-config.php" netwrok VPN saja.
+
 ### 2.6 Instalasi SSL Certificate pada Web server(443 HTTPS)
 
 
@@ -187,6 +221,43 @@ Apa saja yang diKonfiguras?
 ### 3.0 Konfigurasi Webmail Roundcube
 
 ### 3.1 Mengamankan Roundcube secara Umum
+Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
+yang direkomendasikan dari pihak roundcube
+
+**Langkah 1: Hapus Installer Roundcube**
+```
+rm -rf /var/www/roundcube/installer
+```
+**Langkah 2: Membuat .htmaccess dan Melakukan a2site hanya untuk direktori /public_html saja pada roundcube**
+```
+nano /etc/apache2/sites-available/roundcube.conf
+```
+**Langkah 3: Isi Konfigurasi seperti dibawah ini**
+```
+<VirtualHost *:80>
+    ServerAdmin fenrir@projectman.my.id
+    DocumentRoot /var/www/roundcube/public_html
+    ServerName mail.projectman.my.id
+
+    <Directory "/var/www/roundcube/public_html">
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        RewriteEngine On
+        RewriteRule ^roundcube(.*)$ /var/www/roundcube/public_html/roundcube$1 [L]
+
+        <FilesMatch "^/(config|temp|logs)">
+            Deny from all
+        </FilesMatch>
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/roundcube_error.log
+    CustomLog ${APACHE_LOG_DIR}/roundcube_access.log combined
+</VirtualHost>
+```
+Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
+config/temp/logs sesuai rekomendasi roundcube
 
 ### 3.2 Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
 
