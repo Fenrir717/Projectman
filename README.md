@@ -192,16 +192,14 @@ iface enp0s9 inet static
 systemctl restart networking
 ```
 
-
-Apa saja yang diKonfiguras?
-
-1. Web Server 
-2. Mail Server 
-3. Database Server
-4. VPN Server
-5. DNS Server
-6. Port Knocking
-7. Monitoring Server
+### Apa saja yang diKonfiguras? ###
+**1. Web Server**
+**2. Mail Server**
+**3. Database Server**
+**4. VPN Server**
+**5. DNS Server**
+**6. Port Knocking**
+**7. Monitoring Server**
 
 ### 2.1 Web Server
 
