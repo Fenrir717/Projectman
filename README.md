@@ -266,6 +266,40 @@ config/temp/logs sesuai rekomendasi roundcube
 ### 3.2 Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
 ### 3.3 Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+**Langkah 1: Membuka direktori utama Mariadb**
+```
+nano /etc/mysql/mariadb.cnf
+```
+**Langkah 2: Mengedit Konfigurasi**
+```
+# 1. "/etc/mysql/mariadb.cnf" (this file) to set global defaults,
+# 2. "/etc/mysql/conf.d/*.cnf" to set global options.
+# 3. "/etc/mysql/mariadb.conf.d/*.cnf" to set MariaDB-only options.
+# 4. "~/.my.cnf" to set user-specific options.
+#
+# If the same option is defined multiple times, the last one will apply.
+#
+# One can use all long options that the program supports.
+# Run program with --help to get a list of available options and with
+# --print-defaults to see which it would actually understand and use.
+#
+# If you are new to MariaDB, check out https://mariadb.com/kb/en/basic-mariadb-articles/
+
+#
+# This group is read both by the client and the server
+# use it for options that affect everything
+#
+[client-server]
+# Port or socket location where to connect
+bind-address = 127.0.0.1
+port = 3306
+socket = /run/mysqld/mysqld.sock
+```
+ini akan membuat database server hanya bisa diakses dari localhost
+
+# Import all .cnf files from configuration directory
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mariadb.conf.d/
 
 ### 3.4 Instalasi dan Konfigurasi OPENVPN
 
