@@ -463,6 +463,12 @@ ExecStopPost=/etc/openvpn/server/remove-bridge.sh
 systemctl daemon-reload
 systemctl enable --now openvpn-server@server
 ```
+
+**Langkah 18: Jika terjadi error seperti salah penempatan folder bisa gunakan command ini**
+```
+cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
+```
+
 ### 3.5 Instalasi dan Konfigurasi Port Knocking(Knockd)
 
 ### 3.6 Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
