@@ -156,6 +156,42 @@ dpkg-reconfigure iptables-persistent
 ## 2. Konfigurasi Server pada VM2
 
 ### Konfigurasi Adapter Network VM2
+**Langkah 1: Buka Konfigurasi utama Networking**
+```
+nano /etc/network/interfaces
+```
+**Langkah 2: Edit konfigurasi interfaces**
+```
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network iterface
+#auto enp0s3
+#allow-hotplug enp0s3
+#iface enp0s3 inet dhcp
+
+auto enp0s8
+iface enp0s8 inet static
+ address 192.168.20.2
+ netmask 255.255.255.0
+post-up ip route add default via 192.168.20.1 dev enp0s8
+
+auto enp0s9
+iface enp0s9 inet static
+ address 10.10.10.1
+ netmask 255.255.255.0
+```
+**Langkah 3: Restart**
+```
+systemctl restart networking
+```
+
 
 Apa saja yang diKonfiguras?
 
@@ -266,16 +302,13 @@ config/temp/logs sesuai rekomendasi roundcube
 ### 3.2 Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
 ### 3.3 Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+
 **Langkah 1: Membuka direktori utama Mariadb**
 ```
 nano /etc/mysql/mariadb.cnf
 ```
 **Langkah 2: Mengedit Konfigurasi**
 ```
-# 1. "/etc/mysql/mariadb.cnf" (this file) to set global defaults,
-# 2. "/etc/mysql/conf.d/*.cnf" to set global options.
-# 3. "/etc/mysql/mariadb.conf.d/*.cnf" to set MariaDB-only options.
-# 4. "~/.my.cnf" to set user-specific options.
 #
 # If the same option is defined multiple times, the last one will apply.
 #
@@ -291,16 +324,69 @@ nano /etc/mysql/mariadb.cnf
 #
 [client-server]
 # Port or socket location where to connect
+#port = 3306
+socket = /run/mysqld/mysqld.sock
+
+[mysqld]
 bind-address = 127.0.0.1
 port = 3306
-socket = /run/mysqld/mysqld.sock
-```
-ini akan membuat database server hanya bisa diakses dari localhost
-
+log-bin
 # Import all .cnf files from configuration directory
 !includedir /etc/mysql/conf.d/
 !includedir /etc/mysql/mariadb.conf.d/
+```
+ini akan membuat database server hanya bisa diakses dari localhost
 
+**Langkah 3: Restart**
+```
+systemctl restart mysqld mariadb.service
+```
+
+**Langkah 4: Buka Konfigurasi .htmaccess phpmyadmin**
+```
+nano /etc/apache2/conf-available/phpmyadmin.conf
+```
+**Langkah 5: Edit Konfigurasi ini**
+```
+# phpMyAdmin default Apache configuration
+
+Alias /phpmyadmin /usr/share/phpmyadmin
+
+<Directory /usr/share/phpmyadmin>
+    Options SymLinksIfOwnerMatch
+    DirectoryIndex index.php
+
+    # limit libapache2-mod-php to files and directories necessary by pma
+    <IfModule mod_php7.c>
+        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
+        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
+    </IfModule>
+
+    # PHP 8+
+    <IfModule mod_php.c>
+        php_admin_value upload_tmp_dir /var/lib/phpmyadmin/tmp
+        php_admin_value open_basedir /usr/share/phpmyadmin/:/usr/share/doc/phpmyadmin/:/etc/phpmyadmin/:/var/lib/phpmyadmin/:/usr/share/php/:/usr/share/javascript/
+    </IfModule>
+
+        Require ip 20.10.20.0/24
+</Directory>
+
+# Disallow web access to directories that don't need it
+<Directory /usr/share/phpmyadmin/templates>
+    Require all denied
+</Directory>
+<Directory /usr/share/phpmyadmin/libraries>
+    Require all denied
+</Directory>
+```
+**Langkah 6: Reload**
+```
+systemctl reload apache2
+```
+**Langkah 7: Block akses ke port 3306 dari luar**
+```
+ufw deny 3306
+```
 ### 3.4 Instalasi dan Konfigurasi OPENVPN
 
 **Langkah 1: Instalasi paket Openvpn & iptables**
@@ -575,6 +661,52 @@ cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
 ```
 
 ### 3.5 Instalasi dan Konfigurasi Port Knocking(Knockd)
+
+**Langkah 1: Instalasi knockd**
+```
+apt-get install knockd
+```
+**Langkah 2: Buka File Konfigurasi utama Knockd**
+```
+nano /etc/knockd.conf
+```
+**Langkah 3:Edit Sequence Number seperti sekanrio**
+```
+[options]
+        logfile = /var/log/knockd.log
+
+[openSSH]
+        sequence    = 3200,7600,11000
+        seq_timeout = 5
+        command     = ufw allow from %IP% to any port 9029 comment 'Port Knocking Access'
+        tcpflags    = syn
+
+[closeSSH]
+        sequence    = 11000,7600,3200
+        seq_timeout = 5
+        command     = ufw delete from %IP% to any port 9029 comment 'Port Knocking Access'
+        tcpflags    = syn
+```
+**Langkah 4: Buka Konfigurasi untuk listen Interface nya**
+```
+nano /etc/default/knockd
+```
+**Langkah 5: Edit Konfigurasi listen interface knockd**
+```
+# control if we start knockd at init or not
+# 1 = start
+# anything else = don't start
+# PLEASE EDIT /etc/knockd.conf BEFORE ENABLING
+START_KNOCKD=1
+
+# command line options
+KNOCKD_OPTS="-i tap0"
+```
+**Langkah 6: Restart Layanan Knockd**
+```
+systemctl restart knockd
+systemctl enable knockd
+```
 
 ### 3.6 Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
 
