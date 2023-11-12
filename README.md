@@ -322,7 +322,10 @@ nano /etc/apache2/sites-available/000-default.conf
 ```
 <VirtualHost *:80>
     ServerName projectman.my.id
-    Redirect permanent / https://projectman.my.id/
+
+    <If "%{REMOTE_ADDR} !~ m#^20\.10\.20\.#">
+        Redirect permanent / https://projectman.my.id/
+    </If>
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -362,7 +365,10 @@ nano /etc/apache2/sites-available/roundcube.conf
 ```
 <VirtualHost *:80>
     ServerName mail.projectman.my.id
-    Redirect permanent / https://mail.projectman.my.id/
+
+    <If "%{REMOTE_ADDR} !~ m#^20\.10\.20\.#">
+        Redirect permanent / https://mail.projectman.my.id/
+    </If>
 </VirtualHost>
 
 <VirtualHost *:443>
@@ -394,11 +400,11 @@ nano /etc/apache2/sites-available/roundcube.conf
         Header set X-XSS-Protection "1; mode=block"
     </IfModule>
 </VirtualHost>
-
 ```
 **Langkah 10: Aktifkan Modul ssl**
 ```
 a2enmod ssl
+a2enmod rewrite
 ```
 **Langkah 11: Restart Layanan Apache2**
 ```
