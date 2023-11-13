@@ -263,8 +263,10 @@ nano /etc/modsecurity/modsecurity.conf
 SecRuleEngine On
 
 #SecAuditLogParts ABDEFHIJZ(ubah ke:)
-SecAuditLogParts ABCEFHJKZ
+SecAuditLogParts ABCFHZ
 ```
+agar tampilan log nya lebih simple dan mudah dibaca
+
 **Langkah 8: Restart Apache2**
 ```
 systemctl restart apache2
