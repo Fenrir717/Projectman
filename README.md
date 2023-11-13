@@ -1180,7 +1180,181 @@ systemctl enable knockd
 
 ### 3.6 Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
 
+**Langkah 1: Instalasi Paket-Paket Yang diperlukan**
+```
+wget -q -O /usr/share/keyrings/grafana.key https://packages.grafana.com/gpg.key
+echo "deb [signed-by=/usr/share/keyrings/grafana.key] https://packages.grafana.com/oss/deb stable main" | tee -a /etc/apt/sources.list.d/grafana.list
+apt-get update
+apt-get install loki
+apt-get install promtail
+apt-get install rsyslog
+apt-get install grafana
+apt-get install acl
+```
+**Langkah 2: berikan akses ke direktori /var/log/*" kepada user Promtail**
+```
+setfacl -R -m u:promtail:rX /var/log
+```
+**Langkah 3: Buka Konfigurasi Utama Promtail**
+```
+nano /etc/promtail/config.yml
+```
+**Langkah 4: Tambahkan Job Monitoring**
+```
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://localhost:3100/loki/api/v1/push
+
+scrape_configs:
+- job_name: system
+  static_configs:
+  - targets:
+      - localhost
+    labels:
+      job: varlogs
+      __path__: /var/log/*log
+```
+Pada bagian job_name bisa anda tambahkan ke direktori yang anda ingin kan, misal direktori /var/www/html/error.log. itu bisa ditambahkan sebagai target log yang akan dicapture dan di export oleh Promtail
+
+**Langkah 5: Ke Konfigurasi utama Loki**
+```
+nano /etc/loki/config.yml
+```
+**Langkah 6: Ubah Sesuai Kebutuhan**
+```
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+  grpc_listen_port: 9096
+
+common:
+  instance_addr: 127.0.0.1
+  path_prefix: /tmp/loki
+  storage:
+    filesystem:
+      chunks_directory: /tmp/loki/chunks
+      rules_directory: /tmp/loki/rules
+  replication_factor: 1
+  ring:
+    kvstore:
+      store: inmemory
+
+query_range:
+  results_cache:
+    cache:
+      embedded_cache:
+        enabled: true
+        max_size_mb: 100
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store: boltdb-shipper
+      object_store: filesystem
+      schema: v11
+      index:
+        prefix: index_
+        period: 24h
+
+ruler:
+  alertmanager_url: http://localhost:9093
+
+# By default, Loki will send anonymous, but uniquely-identifiable usage and configuration
+# analytics to Grafana Labs. These statistics are sent to https://stats.grafana.org/
+#
+# Statistics help us better understand how Loki is used, and they show us performance
+# levels for most users. This helps us prioritize features and documentation.
+# For more information on what's sent, look at
+# https://github.com/grafana/loki/blob/main/pkg/usagestats/stats.go
+# Refer to the buildReport method to see what goes into a report.
+#
+# If you would like to disable reporting, uncomment the following lines:
+#analytics:
+#  reporting_enabled: false
+```
+anda bisa mengganti port atau path penyimpanan log dari Loki
+
+**Langkah 7: Buka halaman http://Domain atau IP anda:3100/metrics**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/0a338d52-cc53-4f59-94c8-ecb7e5699396)
+
 ### 3.7 Visualisasi Log Ke Grafana
+
+**Langkah 1: Enable Grafana**
+```
+systemctl enable grafana-server
+systemctl start grafana-server
+```
+**Langkah 2: Buka Konfigurasi Utama Grafana**
+```
+nano /etc/grafana/grafana.ini
+```
+**Langkah 3: Edit Konfigurasi**
+```
+#Hilangkan tanda ";"
+[server]
+# Protocol (http, https, h2, socket)
+protocol = http
+
+# This is the minimum TLS version allowed. By default, this value is empty. Accepted values are: TLS1.2, TLS1.3. If nothing is set TLS1.2 would be taken
+;min_tls_version = ""
+
+# The ip address to bind to, empty will bind to all interfaces
+;http_addr =
+
+# The http port  to use
+http_port = 3000
+
+# The public facing domain name used to access grafana from a browser
+domain = localhost
+```
+**Langkah 4: Restart Grafana**
+```
+systemctl restart grafana-server
+```
+**Langkah 5: Login ke Grafana**
+
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/a435d5a9-9924-4d9e-b3c3-6c6ca2b86dc6)
+Login = "admin password="admin"
+
+**Langkah 6: Add Data Source**
+
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/100ee0ea-49b0-4caa-8e6f-cdccfa0c1f23)
+'Home > Connection > Data Source
+
+**Langkah 7: Search Loki**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/575fb6eb-234a-4aef-ba0f-2958f90de77f)
+
+
+**Langkah 8: Tambahkan URL dimana Loki Berjalan**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/85ec4f0f-3472-4cc8-86ba-23f4ab8b2ba9)
+
+**Langkah 8: Membuat Dashboard baru**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/e4ca5831-1191-4eeb-85a4-2119bc691a4f)
+
+**Langkah 9: Pilih Data Source Loki**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/920de707-b538-4e30-9936-c7777b334279)
+
+Kemudian pada bagian Label Filters : Pilih "job/filename" kemudian pilih "varlogs"
+
+**Langkah 10: Klik Visualisation dan pilih Logs**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/fff6d720-3647-4667-b9d2-b2a946b3ab75)
+kemudian klik "run Query"
+
+**Langkah 11:Klik Apply dan save untuk Membuat Dashboard**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/02e5d46e-68ee-4ac7-a21e-5ceff966dd38)
+
+ Sekarang Muncul sebuah Tampilan Log,dimana anda bisa explore dan membuat dashboard Log anda sendiri
+
+
+
+
 
 ### 3.8 Mengamankan Grafana dengan IP filtering dan SSL Cerfificate
 
