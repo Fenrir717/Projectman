@@ -1352,11 +1352,14 @@ kemudian klik "run Query"
 
  Sekarang Muncul sebuah Tampilan Log,dimana anda bisa explore dan membuat dashboard Log anda sendiri
 
+**Langkah 12: ini Dashoard Dari Monitoring Logs nya**
+![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/c3b2f42b-6df0-4e53-93f3-47c9f9c26714)
 
 
 
 
-### 3.8 Mengamankan Grafana dan Promtail dengan UFW dan SSL Cerfificate
+
+### 3.8 Mengamankan Grafana dengan UFW dan SSL Cerfificate
 
 
 **Langkah 1: Membuat Self Singed Certificate**
