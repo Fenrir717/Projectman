@@ -1356,7 +1356,7 @@ kemudian klik "run Query"
 
 
 
-### 3.8 Mengamankan Grafana dengan UFW dan SSL Cerfificate
+### 3.8 Mengamankan Grafana dan Promtail dengan UFW dan SSL Cerfificate
 
 
 **Langkah 1: Membuat Self Singed Certificate**
@@ -1471,6 +1471,13 @@ Certificate:
 **Langkah 9: Cek halaman Homepage Grafana**
 ![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/eaab821d-b302-4b45-b1b8-82b8d484c22c)
 
+**Langkah 10: Mengamankan Grafana dan Metrics dari Promtail dengan ufw**
+```
+ufw allow from 20.10.20.0/24 to any port 3000
+ufw allow from 20.10.20.0/24 to any port 3100
+ufw reload
+```
+jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 ### 3.9 Instalasi dan Konfigurasi DNS Server(bind9)
 
