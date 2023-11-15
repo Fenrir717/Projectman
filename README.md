@@ -1499,7 +1499,7 @@ apt install rsync mariadb-client cron
 ```
 apt install rsync
 ```
-**Langkah 3: Membuat Script Backup di Server utama(10.10.10.1)**
+**Langkah 3: Membuat Script Backup Sqldump di Server utama(10.10.10.1)**
 ```
 mkdir /home/mysql_backup
 cd /home/mysql_backup
@@ -1529,17 +1529,50 @@ rsync -avz $SOURCE_DIR/$BACKUP_FILE.gz $DESTINATION_DIR
 # Hapus file dump sementara
 rm /tmp/$BACKUP_FILE.gz
 ```
-**Langkah 5: beri akses untuk eksekusi**
+
+**Langkah 5: Membuat Script untuk sinkornisasi Direktori Konfigurasi di Server Utama dan Server Backup**
+```
+touch sync.sh
+nano sync.sh
+```
+**Langkah 6: Isi Script Sync**
+```
+#!/bin/bash
+
+
+SOURCE_DIRS=(
+    "/var/www/*"
+    "/etc/postfix/*"
+    "/etc/apache2/*"
+    "/etc/openvpn/*"
+    "/etc/grafana/*"
+    "/etc/loki/*"
+    "/etc/promtail/*"
+    "/etc/ssh/*"
+    "/etc/dovecot/*"
+)
+
+
+DESTINATION_DIR="10.10.10.2::module_sync"
+
+
+for SOURCE_DIR in "${SOURCE_DIRS[@]}"; do
+    rsync -avz --delete $SOURCE_DIR $DESTINATION_DIR
+done
+```
+
+**Langkah 7: beri akses untuk eksekusi**
 ```
 chmod +x backup.sh
+chmod +x sync.sh
 ```
-**Langkah 6: membuat File Module Backup untuk Menerima dan Mengarahkan File bakcup ke direktori yang sesuai di Server Backup(10.10.10.2)**
+**Langkah 8: membuat File Module Backup untuk Menerima dan Mengarahkan File bakcup ke direktori yang sesuai di Server Backup(10.10.10.2)**
 ```
 #diretori yang akan menyimpan sqldump di VM3
 mkdir /home/mysql_backup
 nano /etc/rsyncd.conf
 ```
-**Langkah 7: Isi File Konfigurasi nya**
+**Langkah 9: Isi File Konfigurasi nya**
 ```
 uid = nobody
 gid = nogroup
@@ -1556,12 +1589,67 @@ log file = /var/log/rsyncd.log
     list = yes
     hosts allow = 10.10.10.1
 ```
-**Langkah 8: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
+**Langkah 10: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
 ```
 chmod 1777 /home/mysql_backup
 ```
+**Langkah 11: Konfigurasi untuk module Sync di Server Backup(10.10.10.2)**
+```
+nano /etc/rsync_module_sync.include
+```
+**Langkah 12: isi dengan**
+```
+/var/www/*
+/etc/postfix/*
+/etc/apache2/*
+/etc/openvpn/*
+/etc/grafana/*
+/etc/loki/*
+/etc/promtail/*
+/etc/ssh/*
+/etc/dovecot/*
+```
+**Langkah 13: Beri Hak Akses**
+```
+chmod 644 /etc/rsync_module_sync.include
+```
+**Langkah 14: Edit Konfigurasi Utama Rsync(10.10.10.2)**
+```
+uid = nobody
+gid = nogroup
+use chroot = yes
+max connections = 4
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
 
-**Langkah 8: Restart**
+[backup_module]
+    path = /home/mysql_backup/
+    comment = Rsync Backup
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync]
+    path = /etc/rsync_module_sync.include
+    comment = Rsync Sync
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+```
+**Langkah 15: menganti hak akses dan pemilik dari setiap Direktori di Server backup agar bisa disinkornisasi(10.10.10.2)**
+```
+setfacl -R -m u:nobody:rwx /var/www
+setfacl -R -m u:nobody:rwx /etc/postfix
+setfacl -R -m u:nobody:rwx /etc/apache2
+setfacl -R -m u:nobody:rwx /etc/openvpn
+setfacl -R -m u:nobody:rwx /etc/grafana
+setfacl -R -m u:nobody:rwx /etc/loki
+setfacl -R -m u:nobody:rwx /etc/promtail
+setfacl -R -m u:nobody:rwx /etc/ssh
+setfacl -R -m u:nobody:rwx /etc/dovecot
+```
+**Langkah 16: Restart**
 ```
 systemctl enable rsync
 systemctl restart rsync
