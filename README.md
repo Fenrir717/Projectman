@@ -1491,5 +1491,82 @@ jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 ### 4.1 Instalasi Rsync
 
+**Langkah 1: Instalasi paket Rsync dan Mariadb-Client& cron di server utama(10.10.10.1)**
+```
+apt install rsync mariadb-client cron
+```
+**Langkah 2: instalasi Rsync di Server backup(10.10.10.2)**
+```
+apt install rsync
+```
+**Langkah 3: Membuat Script Backup di Server utama(10.10.10.1)**
+```
+mkdir /home/mysql_backup
+cd /home/mysql_backup
+touch backup.sh
+nano backup.sh
+```
+**Langkah 4: isi Script backup(10.10.10.1)**
+```
+#!/bin/bash
+
+# Nama File Backup
+BACKUP_FILE="mysql_backup_$(date +%Y%m%d%H%M%S).sql"
+
+# Eksekusi mysqldump
+mysqldump -u root -h localhost -p1 --all-databases > /tmp/$BACKUP_FILE
+
+# Compression (opsional)
+gzip /tmp/$BACKUP_FILE
+
+# Konfigurasi rsync pada server utama
+SOURCE_DIR="/tmp"
+DESTINATION_DIR="10.10.10.2::backup_module"
+
+# Eksekusi rsync tanpa opsi --delete
+rsync -avz $SOURCE_DIR/$BACKUP_FILE.gz $DESTINATION_DIR
+
+# Hapus file dump sementara
+rm /tmp/$BACKUP_FILE.gz
+```
+**Langkah 5: beri akses untuk eksekusi**
+```
+chmod +x backup.sh
+```
+**Langkah 6: membuat File Module Backup untuk Menerima dan Mengarahkan File bakcup ke direktori yang sesuai di Server Backup(10.10.10.2)**
+```
+#diretori yang akan menyimpan sqldump di VM3
+mkdir /home/mysql_backup
+nano /etc/rsyncd.conf
+```
+**Langkah 7: Isi File Konfigurasi nya**
+```
+uid = nobody
+gid = nogroup
+use chroot = yes
+max connections = 4
+pid file = /var/run/rsyncd.pid
+lock file = /var/run/rsync.lock
+log file = /var/log/rsyncd.log
+
+[backup_module]
+    path = /home/mysql_backup/
+    comment = Rsync Backup
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+```
+**Langkah 8: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
+```
+chmod 1777 /home/mysql_backup
+```
+
+**Langkah 8: Restart**
+```
+systemctl enable rsync
+systemctl restart rsync
+```
+
+
 ### 4.2 Membuat Script Backup Konfigurasi secara Rutin
 
