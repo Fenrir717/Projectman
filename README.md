@@ -1729,10 +1729,15 @@ crontab -e
 Format penjadwalan cron adalah sebagai berikut:
 
 Menit (0 - 59)
+
 Jam (0 - 23)
+
 Hari dalam bulan (1 - 31)
+
 Bulan (1 - 12)
+
 Hari dalam minggu (0 - 6, 0 adalah Minggu)
+
 
 (disini jadwal nya 3 hari sekali setiap jam 2 pagi)
 ```
