@@ -43,7 +43,7 @@ Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengim
 
 ### 1.1 Konfigurasi Adapter Network di VM1
 
-**Langkah 1: Buka direktori utama Konfigurasi Adapter
+**Langkah 1: Buka direktori utama Konfigurasi Adapter**
 ```
 nano /etc/network/interfaces
 ```
