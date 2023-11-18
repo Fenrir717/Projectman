@@ -1489,6 +1489,36 @@ jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
 ### Konfigurasi Adapter Network VM3
 
+**Langkah 1: Buka Direktori utama interfaces**
+```
+nano /etc/network/interfaces
+```
+**Langkah 2: Edit Konfigurasi nya**
+```
+# This file describes the network interfaces available on your system
+# and how to activate them. For more information, see interfaces(5).
+
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network iterface
+#auto enp0s3
+#allow-hotplug enp0s3
+#iface enp0s3 inet dhcp
+
+auto enp0s3
+iface enp0s3 inet static
+ address 10.10.10.2
+ netmask 255.255.255.0
+```
+**Langkah 3: Restart Networking**
+```
+systemctl restart networking
+```
+
 ### 4.1 Instalasi Rsync
 
 **Langkah 1: Instalasi paket Rsync dan Mariadb-Client& cron di server utama(10.10.10.1)**
@@ -1539,26 +1569,47 @@ nano sync.sh
 ```
 #!/bin/bash
 
+# Fungsi untuk menyinkronkan modul rsync
+sync_module() {
+    SOURCE_DIR=$1
+    MODULE_NAME=$2
 
-SOURCE_DIRS=(
-    "/var/www/*"
-    "/etc/postfix/*"
-    "/etc/apache2/*"
-    "/etc/openvpn/*"
-    "/etc/grafana/*"
-    "/etc/loki/*"
-    "/etc/promtail/*"
-    "/etc/ssh/*"
-    "/etc/dovecot/*"
-)
+    # Backup direktori ke file tar di /tmp dengan nama yang mencakup nama modul
+    BACKUP_FILE="/tmp/backup_$(date +%Y%m%d%H%M%S).tar.gz"
+    tar -czf $BACKUP_FILE $SOURCE_DIR
 
-
-DESTINATION_DIR="10.10.10.2::module_sync"
+    # Synchronize backup file ke modul rsync
+    rsync -avz $BACKUP_FILE $MODULE_NAME
 
 
-for SOURCE_DIR in "${SOURCE_DIRS[@]}"; do
-    rsync -avz --delete $SOURCE_DIR $DESTINATION_DIR
-done
+    rm $BACKUP_FILE
+}
+
+
+sync_module "/var/www/" "10.10.10.2::module_sync_var_www"
+
+
+sync_module "/etc/postfix/" "10.10.10.2::module_sync_etc_postfix"
+
+
+sync_module "/etc/apache2/" "10.10.10.2::module_sync_etc_apache2"
+
+
+sync_module "/etc/openvpn/" "10.10.10.2::module_sync_etc_openvpn"
+
+
+sync_module "/etc/grafana/" "10.10.10.2::module_sync_etc_grafana"
+
+
+sync_module "/etc/loki/" "10.10.10.2::module_sync_etc_loki"
+
+
+sync_module "/etc/promtail/" "10.10.10.2::module_sync_etc_promtail"
+
+
+sync_module "/etc/dovecot/" "10.10.10.2::module_sync_etc_dovecot"
+
+
 ```
 
 **Langkah 7: beri akses untuk eksekusi**
@@ -1568,52 +1619,24 @@ chmod +x sync.sh
 ```
 **Langkah 8: membuat File Module Backup untuk Menerima dan Mengarahkan File bakcup ke direktori yang sesuai di Server Backup(10.10.10.2)**
 ```
-#diretori yang akan menyimpan sqldump di VM3
 mkdir /home/mysql_backup
-nano /etc/rsyncd.conf
+mkdir /home/backup
+#ini isi subfolder dari /home/backup/
+mkdir www_backup
+mkdir postfix_backup
+mkdir apache2_backup
+mkdir openvpn_backup
+mkdir grafana_backup
+mkdir loki_backup
+mkdir promtail_backup
+mkdir dovecot_backup
 ```
-**Langkah 9: Isi File Konfigurasi nya**
-```
-uid = nobody
-gid = nogroup
-use chroot = yes
-max connections = 4
-pid file = /var/run/rsyncd.pid
-lock file = /var/run/rsync.lock
-log file = /var/log/rsyncd.log
-
-[backup_module]
-    path = /home/mysql_backup/
-    comment = Rsync Backup
-    read only = no
-    list = yes
-    hosts allow = 10.10.10.1
-```
-**Langkah 10: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
+**Langkah 9: Beri Hak akses ke Direktori yang akan menyimpan file Backup di Server Backup(10.10.10.2)**
 ```
 chmod 1777 /home/mysql_backup
+chmod -R 1777 /home/backup/
 ```
-**Langkah 11: Konfigurasi untuk module Sync di Server Backup(10.10.10.2)**
-```
-nano /etc/rsync_module_sync.include
-```
-**Langkah 12: isi dengan**
-```
-/var/www/*
-/etc/postfix/*
-/etc/apache2/*
-/etc/openvpn/*
-/etc/grafana/*
-/etc/loki/*
-/etc/promtail/*
-/etc/ssh/*
-/etc/dovecot/*
-```
-**Langkah 13: Beri Hak Akses**
-```
-chmod 644 /etc/rsync_module_sync.include
-```
-**Langkah 14: Edit Konfigurasi Utama Rsync(10.10.10.2)**
+**Langkah 10: Edit Konfigurasi Utama Rsync(10.10.10.2)**
 ```
 uid = nobody
 gid = nogroup
@@ -1630,31 +1653,95 @@ log file = /var/log/rsyncd.log
     list = yes
     hosts allow = 10.10.10.1
 
-[module_sync]
-    path = /etc/rsync_module_sync.include
-    comment = Rsync Sync
+[module_sync_var_www]
+    path = /home/backup/www_backup/
+    comment = Rsync Sync /var/www
     read only = no
     list = yes
     hosts allow = 10.10.10.1
+
+[module_sync_etc_postfix]
+    path = /home/backup/postfix_backup/
+    comment = Rsync Sync /etc/postfix
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_apache2]
+    path = /home/backup/apache2_backup/
+    comment = Rsync Sync /etc/apache2
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_openvpn]
+    path = /home/backup/openvpn_backup/
+    comment = Rsync Sync /etc/openvpn
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_grafana]
+    path = /home/backup/grafana_backup/
+    comment = Rsync Sync /etc/grafana
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_loki]
+    path = /home/backup/loki_backup/
+    comment = Rsync Sync /etc/loki
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+
+[module_sync_etc_promtail]
+    path = /home/backup/promtail_backup/
+    comment = Rsync Sync /etc/promtail
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
+[module_sync_etc_dovecot]
+    path = /home/backup/dovecot_backup/
+    comment = Rsync Sync /etc/dovecot
+    read only = no
+    list = yes
+    hosts allow = 10.10.10.1
+
 ```
-**Langkah 15: menganti hak akses dan pemilik dari setiap Direktori di Server backup agar bisa disinkornisasi(10.10.10.2)**
-```
-setfacl -R -m u:nobody:rwx /var/www
-setfacl -R -m u:nobody:rwx /etc/postfix
-setfacl -R -m u:nobody:rwx /etc/apache2
-setfacl -R -m u:nobody:rwx /etc/openvpn
-setfacl -R -m u:nobody:rwx /etc/grafana
-setfacl -R -m u:nobody:rwx /etc/loki
-setfacl -R -m u:nobody:rwx /etc/promtail
-setfacl -R -m u:nobody:rwx /etc/ssh
-setfacl -R -m u:nobody:rwx /etc/dovecot
-```
-**Langkah 16: Restart**
+**Langkah 11: Restart**
 ```
 systemctl enable rsync
 systemctl restart rsync
 ```
 
 
-### 4.2 Membuat Script Backup Konfigurasi secara Rutin
+### 4.2 Menjadwalkan Script Backup secara Rutin(Crontab)
+
+**Langkah 1: Buka Direktori Utama Crontab**
+```
+crontab -e
+```
+**Langkah 2: Jadwalkan Sesuai keinginan**
+
+Format penjadwalan cron adalah sebagai berikut:
+
+Menit (0 - 59)
+Jam (0 - 23)
+Hari dalam bulan (1 - 31)
+Bulan (1 - 12)
+Hari dalam minggu (0 - 6, 0 adalah Minggu)
+
+(disini jadwal nya 3 hari sekali setiap jam 2 pagi)
+```
+0 2 */3 * * /home/backup/backup.sh
+0 2 */3 * * /home/backup/sync.sh
+```
+
+**Langkah 3: Verifikasi Job cron**
+```
+crontab -l
+```
 
