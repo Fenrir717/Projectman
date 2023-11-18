@@ -27,7 +27,7 @@ Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tig
 - Berfungsi sebagai server backup.
 - Hanya dapat berkomunikasi dengan VM2 di jaringan lokal (10.10.10.1).
 - Tidak terhubung langsung ke internet untuk meningkatkan keamanan.
-- Melakukan backup konfigurasi secara rutin dan sinkronisasi konfigurasi secara live dengan VM2.
+- Menerima backup konfigurasi secara rutin dari VM2 dengan penjadwalan(Crontab).
 
 Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengimplementasikan praktik keamanan yang canggih seperti honeypot, port knocking, VPN, dan konfigurasi otomatis backup. Seluruh konfigurasi akan didokumentasikan dengan baik di dalam repositori ini untuk memudahkan pengelolaan dan pemeliharaan sistem keamanan.
 
