@@ -1565,7 +1565,7 @@ rm /tmp/$BACKUP_FILE.gz
 touch sync.sh
 nano sync.sh
 ```
-**Langkah 6: Isi Script Sync**
+**Langkah 6: Isi Script Sync(10.10.10.1)**
 ```
 #!/bin/bash
 
@@ -1717,14 +1717,41 @@ systemctl enable rsync
 systemctl restart rsync
 ```
 
+**Langkah 12: Script untuk file/log rotate(10.10.10.2)**
+```
+nano backup_rotate.sh
+```
+jadi saya akan membuat script yang bisa menghapus file backup yang sudah berumur lebih dari 7 hari(7+)
+
+**Langkah 13: isi script**
+```
+#!/bin/bash
+
+BACKUP_DIRS=(
+    "/home/mysql_backup/"
+    "/home/backup/www_backup/"
+    "/home/backup/postfix_backup/"
+    "/home/backup/apache2_backup/"
+    "/home/backup/openvpn_backup/"
+    "/home/backup/grafana_backup/"
+    "/home/backup/loki_backup/"
+    "/home/backup/promtail_backup/"
+)
+
+for dir in "${BACKUP_DIRS[@]}"; do
+    find $dir -type f -mtime +7 -exec rm {} \;
+done
+
+systemctl restart rsync
+```
 
 ### 4.2 Menjadwalkan Script Backup secara Rutin(Crontab)
 
-**Langkah 1: Buka Direktori Utama Crontab**
+**Langkah 1: Buka Direktori Utama Crontab(10.10.10.1)**
 ```
 crontab -e
 ```
-**Langkah 2: Jadwalkan Sesuai keinginan**
+**Langkah 2: Jadwalkan Sesuai keinginan(10.10.10.1)**
 
 Format penjadwalan cron adalah sebagai berikut:
 
@@ -1745,8 +1772,26 @@ Hari dalam minggu (0 - 6, 0 adalah Minggu)
 0 2 */3 * * /home/backup/sync.sh
 ```
 
-**Langkah 3: Verifikasi Job cron**
+**Langkah 3: Verifikasi Job cron(10.10.10.1)**
 ```
 crontab -l
 ```
+
+**Langkah 4: direktori crontab di VM3(10.10.10.2)**
+```
+crobtab -e
+```
+**Langkah 5: edit direktori crontab(10.10.10.2)**
+```
+0 2 * * 0 /home/backup/backup_rotate.sh
+```
+jadi script akan terjadwalkan setiap seminggu sekali yang,akan menghapus file backup yang sudah berumur lebih dari 7+ hari
+
+**Langkah 6: Apply script(10.10.10.2)**
+```
+crontab -l
+```
+
+
+
 
