@@ -207,13 +207,13 @@ systemctl restart networking
 
 **7. Monitoring Server**
 
-### 2.1 Web Server
+### A. Web Server
 
-### 2.2 Instalasi dan Konfigurasi Apache2
+### B. Instalasi dan Konfigurasi Apache2
 
-### 2.3 Konfigurasi CMS Wordpress pada Apache2
+### C. Konfigurasi CMS Wordpress pada Apache2
 
-### 2.4 Konfigurasi WAF(Web Application Firewall)
+### D. Konfigurasi WAF(Web Application Firewall)
 
 **Langkah 1: Instalasi Paket Modsecurity2**
 ```
@@ -311,7 +311,7 @@ systemctl restart apache2
 ```
 
 
-### 2.5 Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
+### E. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
 
 **Langkah 1: ke direktori a2site pada Apache2**
 ```
@@ -347,7 +347,7 @@ nano /etc/apache2/sites-available/000-default.conf
 ```
 konfigurasi ini akan memblokir akses ke dirktori yang paling penting yaitu "wp-config.php" netwrok VPN saja.
 
-### 2.6 Instalasi SSL Certificate pada Web server(443 HTTPS)
+### F. Instalasi SSL Certificate pada Web server(443 HTTPS)
 
 SSL Certificate nya akan Menggunakan self-Singed SSL dari Openssl
 
@@ -518,13 +518,13 @@ root@VM2:~# systemctl restart apache2
 
 
 
-### 2.8 Mail Server
+### G. Mail Server
 
-### 2.9 Instalasi dan Konfigurasi Postfix dan Dovecot
+### H. Instalasi dan Konfigurasi Postfix dan Dovecot
 
-### 3.0 Konfigurasi Webmail Roundcube
+### I. Konfigurasi Webmail Roundcube
 
-### 3.1 Mengamankan Roundcube secara Umum
+### J. Mengamankan Roundcube secara Umum
 Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
 yang direkomendasikan dari pihak roundcube
 
@@ -563,7 +563,7 @@ nano /etc/apache2/sites-available/roundcube.conf
 Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
 config/temp/logs sesuai rekomendasi roundcube
 
-### 3.2 Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
+### K. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
 **Langkah 1: Membuat Certificate TLS1.1 untuk SMTP 465**
 ```
 openssl req -new -newkey rsa:2048 -nodes -keyout mail.projectman.my.id.key -out mail.projectman.my.id.csr
@@ -767,11 +767,11 @@ read R BLOCK
 220 mail.projectman.my.id ESMTP
 ```
 
-### 3.3 Database Server
+### L. Database Server
 
-### 3.2 Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
 
-### 3.3 Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+### N. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
 
 **Langkah 1: Membuka direktori utama Mariadb**
 ```
@@ -857,7 +857,7 @@ systemctl reload apache2
 ```
 ufw deny 3306
 ```
-### 3.4 Instalasi dan Konfigurasi OPENVPN
+### O. Instalasi dan Konfigurasi OPENVPN
 
 **Langkah 1: Instalasi paket Openvpn & iptables**
 ```
@@ -1130,7 +1130,7 @@ systemctl enable --now openvpn-server@server
 cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
 ```
 
-### 3.5 Instalasi dan Konfigurasi Port Knocking(Knockd)
+### P. Instalasi dan Konfigurasi Port Knocking(Knockd)
 
 **Langkah 1: Instalasi knockd**
 ```
@@ -1178,7 +1178,7 @@ systemctl restart knockd
 systemctl enable knockd
 ```
 
-### 3.6 Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
+### Q. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
 
 **Langkah 1: Instalasi Paket-Paket Yang diperlukan**
 ```
@@ -1284,7 +1284,7 @@ anda bisa mengganti port atau path penyimpanan log dari Loki
 **Langkah 7: Buka halaman http://Domain atau IP anda:3100/metrics**
 ![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/0a338d52-cc53-4f59-94c8-ecb7e5699396)
 
-### 3.7 Visualisasi Log Ke Grafana
+### R. Visualisasi Log Ke Grafana
 
 **Langkah 1: Enable Grafana**
 ```
@@ -1359,7 +1359,7 @@ kemudian klik "run Query"
 
 
 
-### 3.8 Mengamankan Grafana dengan UFW dan SSL Cerfificate
+### S. Mengamankan Grafana dengan UFW dan SSL Cerfificate
 
 
 **Langkah 1: Membuat Self Singed Certificate**
@@ -1482,10 +1482,10 @@ ufw reload
 ```
 jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
-### 3.9 Instalasi dan Konfigurasi DNS Server(bind9)
+### T. Instalasi dan Konfigurasi DNS Server(bind9)
 
 
-### 4.0 Konfigurasi Server Backup VM3
+### 3.0 Konfigurasi Server Backup VM3
 
 ### Konfigurasi Adapter Network VM3
 
