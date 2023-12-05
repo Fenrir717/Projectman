@@ -1130,7 +1130,7 @@ systemctl enable --now openvpn-server@server
 cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
 ```
 
-### P. Instalasi dan Konfigurasi Port Knocking(Knockd)
+### 6. Instalasi dan Konfigurasi Port Knocking(Knockd)
 
 **Langkah 1: Instalasi knockd**
 ```
@@ -1178,7 +1178,7 @@ systemctl restart knockd
 systemctl enable knockd
 ```
 
-### Q. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
+### 7. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
 
 **Langkah 1: Instalasi Paket-Paket Yang diperlukan**
 ```
