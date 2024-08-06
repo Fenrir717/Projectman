@@ -1,8 +1,24 @@
-# Projectman-example
+# ProjectMen
+
+
+ANGGOTA KELOMPOK:
+
+MUHAMMAD NUR HAQIQI - 22.83.0886 TK-02(Ketua) - System Security Administrator (Fenrir717)
+
+Georel Jeferson Fransiskus Bonai - 22.83.0833(Anggota 1) - Mail Server Administrator (Quetzalcoatlos23)
+
+Muhammad Akbar Firmansyah - 22.83.0870(Anggota 2) -  CMS Wordpress Configurator
+
+Muhammad Fadhil Mundzir Sakaria - 22.83.0829(Anggota 3) - Database Administrator (A4VA4TA4R)
+
+Willy Agustianus - 22.83.0882(Anggota 4) - Roundcube Webmail Configurator
+
+Janssensius Rifaldo Lhezu  -  22.83.0861(Anggota 5) - Web Server Administrator
 
 
 **TOPOLOGI:**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/fc2f674b-2b70-4379-8bb7-0940ea93da03)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/15940bb6-a453-4a1a-bd59-ae71f2bf8628)
+
 
 **SCENARIO:**
 Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tiga server virtual (VM), masing-masing bernama VM1, VM2, dan VM3. Berikut adalah konfigurasi keamanan yang akan diterapkan:
@@ -31,13 +47,13 @@ Proyek ini bertujuan untuk mengimplementasikan langkah-langkah keamanan pada tig
 
 Proyek ini bertujuan untuk menciptakan lingkungan server yang aman dengan mengimplementasikan praktik keamanan yang canggih seperti honeypot, port knocking, VPN, dan konfigurasi otomatis backup. Seluruh konfigurasi akan didokumentasikan dengan baik di dalam repositori ini untuk memudahkan pengelolaan dan pemeliharaan sistem keamanan.
 
-
-
 **Konfigurasi pada Setiap VM**
- [VM1](#1-Konfigurasi-Honeypot-pada-VM1)
- [VM2](#2-Konfigurasi-Server-pada-VM2)
- [VM3](#VM3)
 
+ [1.VM1](#1-Konfigurasi-Honeypot-pada-VM1)
+ 
+ [2.VM2](#2-Konfigurasi-Server-pada-VM2)
+ 
+ [3.VM3](#3-Konfigurasi-Server-pada-VM3)
 
 ## 1. Konfigurasi Honeypot pada VM1
 
@@ -192,7 +208,7 @@ iface enp0s9 inet static
 systemctl restart networking
 ```
 
-### Apa saja yang diKonfiguras? ###
+### Apa saja yang diKonfigurasi? ###
 **1. Web Server**
 
 **2. Mail Server**
@@ -207,13 +223,13 @@ systemctl restart networking
 
 **7. Monitoring Server**
 
-### A. Web Server
+### 1. Web Server
 
-### B. Instalasi dan Konfigurasi Apache2
+### A. Instalasi dan Konfigurasi Apache2
 
-### C. Konfigurasi CMS Wordpress pada Apache2
+### B. Konfigurasi CMS Wordpress pada Apache2
 
-### D. Konfigurasi WAF(Web Application Firewall)
+### C. Konfigurasi WAF(Web Application Firewall)
 
 **Langkah 1: Instalasi Paket Modsecurity2**
 ```
@@ -311,7 +327,7 @@ systemctl restart apache2
 ```
 
 
-### E. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
+### D. Mengamankan Halaman-Halaman Utama Wordpress dengan IP Filtering
 
 **Langkah 1: ke direktori a2site pada Apache2**
 ```
@@ -347,7 +363,7 @@ nano /etc/apache2/sites-available/000-default.conf
 ```
 konfigurasi ini akan memblokir akses ke dirktori yang paling penting yaitu "wp-config.php" netwrok VPN saja.
 
-### F. Instalasi SSL Certificate pada Web server(443 HTTPS)
+### E. Instalasi SSL Certificate pada Web server(443 HTTPS)
 
 SSL Certificate nya akan Menggunakan self-Singed SSL dari Openssl
 
@@ -516,15 +532,199 @@ root@VM2:~# systemctl restart apache2
 🔐 Enter passphrase for SSL/TLS keys for mail.projectman.my.id:443 (RSA): ****
 ```
 
+### 2. Mail Server
 
+### A. Instalasi dan Konfigurasi Postfix
+**Langkah 1: Install Postfix**
+```
+apt -y install postfix sasl12-bin
+```
+```
+# Pada contoh disini, pilih [No Configuration]
+# Dikarenakan kita akan mengonfigurasinya secara Manual
 
-### G. Mail Server
++------+ Postfix Configuration +-------+
+| General type of mail configuration:  |
+|                                      |
+|       No configuration               |
+|       Internet Site                  |
+|       Internet with smarthost        |
+|       Satellite system               |
+|       Local only                     |
+|                                      |
+|                                      |
+|       <Ok>           <Cancel>        |
+|                                      |
++--------------------------------------+
+```
+**Langkah 2: Backup file main.cf**
+*Dikarenakan kita akan mengubah file main.cf, jadi ada baiknya dibackup dulu supaya jika terjadi kesalahan kita bisa membalikannya*
+```
+cp /usr/share/postfix/main.cf.dist /etc/postfix/main.cf
+```
+**Langkah 3: Konfigurasi Main.cf**
+```
+nano /etc/postfix/main.cf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Penjelasan: "Uncomment" artinya menghilangkan tanda pagar, sedangkan "Comment out" adalah sebaliknya
+# Baris 82 : uncomment
+mail_owner = postfix
 
-### H. Instalasi dan Konfigurasi Postfix dan Dovecot
+# Baris 98 : uncomment dan berikan hostname
+myhostname = mail.projectman.my.id
 
-### I. Konfigurasi Webmail Roundcube
+# Baris 106 : uncomment dan berikan domainname
+mydomain = projectman.my.id
 
-### J. Mengamankan Roundcube secara Umum
+# Baris 127 : uncomment
+myorigin = $mydomain
+
+# Baris 141 : uncomment
+inet_interfaces = all
+
+# Baris 189 : uncomment
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+
+# Baris 232 : uncomment
+local_recipient_maps = unix:passwd.byname $alias_maps
+
+# Baris 277 : uncomment
+mynetworks_style = subnet
+
+# Baris 294 : Tambahkan Jaringan Lokalmu
+mynetworks = 127.0.0.0/8, 192.168.20.0/24
+
+# Baris 416 : uncomment
+alias_maps = hash:/etc/aliases
+
+# Baris 427 : uncomment
+alias_database = hash:/etc/aliases
+
+# Baris 449 : uncomment
+home_mailbox = Maildir/
+
+# Baris 585: comment out dan tambahkan baris kode dibawah
+#smtpd_banner = $myhostname ESMTP $mail_name (Debian/GNU)
+smtpd_banner = $myhostname ESMTP
+
+# Baris 659 : Tambahkan
+sendmail_path = /usr/sbin/postfix
+
+# Baris 664 : Tambahkan
+newaliases_path = /usr/bin/newaliases
+
+# Baris 669 : Tambahkan
+mailq_path = /usr/bin/mailq
+
+# Baris 675 : Tambahkan
+setgid_group = postdrop
+
+# Baris 679 : comment out
+#html_directory =
+
+# Baris 683 : comment out
+#manpage_directory =
+
+# Baris 688 : comment out
+#sample_directory =
+
+# Baris 692 : comment out
+#readme_directory =
+
+# Baris 692 : Jika IPv6 dipakai, ganti ke [all], tapi pada kasus ini saya tidak menggunakan IPv6
+inet_protocols = ipv4
+
+# Tambahkan kode dibawah ini di baris paling akhir
+# disable SMTP VRFY command
+disable_vrfy_command = yes
+
+# require HELO command to sender hosts
+smtpd_helo_required = yes
+
+# Batasi ukuran Email
+# Contoh dibawah adalah batas 10M bytes
+message_size_limit = 10240000
+
+# SMTP-Auth settings
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+smtpd_sasl_security_options = noanonymous
+smtpd_sasl_local_domain = $myhostname
+smtpd_recipient_restrictions = permit_mynetworks, permit_auth_destination, permit_sasl_authenticated, reject
+```
+**Langkah 4: Restart Layanan Postfix**
+```
+newaliases
+```
+```
+systemctl restart postfix
+```
+#### B. Instalasi dan Konfigurasi Dovecot
+**Langkah 1: Install Dovecot**
+```
+apt -y install-core dovecot-pop3d dovecot-imapd
+```
+
+**Langkah 2: Konfigurasi file dovecot.conf**
+```
+nano /etc/dovecot/dovecot.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 30 : uncomment
+listen = *, ::
+```
+
+**Langkah 3: Konfigurasi file 10-auth.conf**
+```
+nano /etc/dovecot/conf.d/10-auth.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 10 : uncomment dan ubah (allow plain text auth)
+disable_plaintext_auth = no
+
+# Baris 100 : Tambahkan
+auth_mechanisms = plain login
+```
+
+**Langkah 4: Konfigurasi file 10-mail.conf**
+```
+nano /etc/dovecot/conf.d/10-mail.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 30 : Ubah ke Maildir
+mail_location = maildir:~/Maildir
+```
+
+**Langkah 5: Konfigurasi file 10-master.conf**
+```
+nano /etc/dovecot/conf.d/10-master.conf
+```
+**Ubahlah beberapa baris kode seperti dibawah ini:**
+```
+# Baris 107-109 : uncomment dan tambahkan
+  # Postfix smtp-auth
+  unix_listener /var/spool/postfix/private/auth {
+    mode = 0666
+    user = postfix
+    group = postfix
+  }
+```
+
+**Langkah 6: Restart layanan Dovecot**
+```
+systemctl restart dovecot
+```
+
+### C. Konfigurasi Webmail Roundcube
+
+### D. Mengamankan Roundcube secara Umum
+
 Sebelum Mengamankan Roundcube lebih jauh seperti Memasang WAF,kita Terlebih dahulu perlu mengamankan Direktor-Direktori yang berpotensi menjadi sasaran para Penyerang
 yang direkomendasikan dari pihak roundcube
 
@@ -563,7 +763,7 @@ nano /etc/apache2/sites-available/roundcube.conf
 Konfigurasi ini akan melakukan a2site ke halaman /roundcube/public_html saja dan memblokir akses ke direktori
 config/temp/logs sesuai rekomendasi roundcube
 
-### K. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
+### E. Instalasi SSL Certificate pada Protocol Mail Server (SMTPS dan IMAPS)
 **Langkah 1: Membuat Certificate TLS1.1 untuk SMTP 465**
 ```
 openssl req -new -newkey rsa:2048 -nodes -keyout mail.projectman.my.id.key -out mail.projectman.my.id.csr
@@ -767,11 +967,107 @@ read R BLOCK
 220 mail.projectman.my.id ESMTP
 ```
 
-### L. Database Server
+### 3. Database Server
+### A. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+## Instalasi MariaDB
+**Langkah 1: Instalasi Paket MariaDB**
+```
+sudo apt-get update
+sudo apt-get install mariadb-server
+```
+## Konfigurasi MariaDB
+**Langkah 1: Jalankan Perintah ini**
+```
+mysql_secure_installation
+```
+**Langkah 2: Ikuti Konfigurasi dibawah ini**
 
-### M. Instalasi dan konfigurasi Mariadb dan Phpmyadmin
+Anda Bisa Mengikuti Langkah-Langkah ini:
+```
+NOTE: RUNNING ALL PARTS OF THIS SCRIPT IS RECOMMENDED FOR ALL MariaDB
+      SERVERS IN PRODUCTION USE!  PLEASE READ EACH STEP CAREFULLY!
 
-### N. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
+In order to log into MariaDB to secure it, we'll need the current
+password for the root user. If you've just installed MariaDB, and
+haven't set the root password yet, you should just press enter here.
+
+Enter current password for root (enter for none):
+OK, successfully used password, moving on...
+
+Setting the root password or using the unix_socket ensures that nobody
+can log into the MariaDB root user without the proper authorisation.
+
+You already have your root account protected, so you can safely answer 'n'.
+
+Switch to unix_socket authentication [Y/n] n
+ ... skipping.
+
+You already have your root account protected, so you can safely answer 'n'.
+
+Change the root password? [Y/n] n
+ ... skipping.
+
+By default, a MariaDB installation has an anonymous user, allowing anyone
+to log into MariaDB without having to have a user account created for
+them.  This is intended only for testing, and to make the installation
+go a bit smoother.  You should remove them before moving into a
+production environment.
+
+Remove anonymous users? [Y/n] y
+ ... Success!
+
+Normally, root should only be allowed to connect from 'localhost'.  This
+ensures that someone cannot guess at the root password from the network.
+
+Disallow root login remotely? [Y/n] n
+ ... skipping.
+
+By default, MariaDB comes with a database named 'test' that anyone can
+access.  This is also intended only for testing, and should be removed
+before moving into a production environment.
+
+Remove test database and access to it? [Y/n] y
+ - Dropping test database...
+ ... Success!
+ - Removing privileges on test database...
+ ... Success!
+
+Reloading the privilege tables will ensure that all changes made so far
+will take effect immediately.
+
+Reload privilege tables now? [Y/n] y
+ ... Success!
+
+Cleaning up...
+
+All done!  If you've completed all of the above steps, your MariaDB
+installation should now be secure.
+
+Thanks for using MariaDB!
+```
+Bagian "Disallow root login remotely" bisa diatur sesuai keperluan,karena pada bagian perlu itu login dengan root account.
+
+## Instalasi dan Konfigurasi Phpmyadmin
+**Langkah 1: Lakukan instalasi paket**
+```
+apt-get install phpmyadmin
+```
+**Langkah 2: Konfigurasi Phpmyadmin**
+Bisa langsung Konfigurasi otomatis agar bisa ditampilkan ke Web Server anda
+![01](https://github.com/Xzhacts-Crew/ProjectMen/assets/148263594/b47f0218-35c4-4ec5-9f40-318bc205eb0c)
+
+atau bisa Menggunakan Command Line
+```
+ln -s /etc/phpmyadmin/apache.conf /etc/apache2/conf-available/phpmyadmin.conf
+a2enconf phpmyadmin
+systemctl reload apache2
+```
+## Menguji Konfigurasi
+berhasil dibuka melalui Webserver Apache2
+
+![02](https://github.com/Xzhacts-Crew/ProjectMen/assets/148263594/b605cab2-ea0a-47aa-87f4-db1d6b3f9ffc)
+
+### B. Mengamankan MariaDB dan phpmyadmin dengan UFW dan IP FIlTERING
 
 **Langkah 1: Membuka direktori utama Mariadb**
 ```
@@ -857,8 +1153,10 @@ systemctl reload apache2
 ```
 ufw deny 3306
 ```
-### O. Instalasi dan Konfigurasi OPENVPN
 
+### 4. Instalasi dan Konfigurasi OPENVPN
+
+### A. Instalasi OpenVPN dan Konfigurasi
 **Langkah 1: Instalasi paket Openvpn & iptables**
 ```
 apt-get install -y openvpn easy-rsa iptables
@@ -1130,7 +1428,164 @@ systemctl enable --now openvpn-server@server
 cp -r /etc/openvpn/server/!(add-bridge.sh|remove-bridge.sh) /etc/openvpn/
 ```
 
+### 5. DNS Server
+### A. Instalasi dan Konfigurasi BIND (Berkeley Internet Name Domain)
+**Langkah 1: Instalasi BIND**
+```
+apt -y install bind9 bind9utils
+```
+
+**Langkah 2: Copy file untuk Konfigurasi "Forward" dan "Reverse"**
+```
+cd /etc/bind
+root@VM2:/etc/bind# ls
+
+bind.keys  db.127  db.empty  named.conf                named.conf.local    rndc.key
+db.0       db.255  db.local  named.conf.default-zones  named.conf.options  zones.rfc1918
+cp db.local db.forward
+cp db.127 db.reverse
+```
+**Langkah 3: Konfigurasi file db.forward**
+```
+nano db.forward
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+; BIND data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     projectman.my.id. root.projectman.my.id. (
+                              2         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      projectman.my.id.
+@       IN      A       192.168.20.2
+ns      IN      A       192.168.20.2
+www     IN      A       192.168.20.2
+mail    IN      A       192.168.20.2
+@       IN      MX      10 mail.projectman.my.id.
+```
+
+**Langkah 4: Konfigurasi file db.reverse**
+```
+nano db.reverse
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+;
+; BIND reverse data file for local loopback interface
+;
+$TTL    604800
+@       IN      SOA     projectman.my.id. root.projectman.my.id. (
+                              1         ; Serial
+                         604800         ; Refresh
+                          86400         ; Retry
+                        2419200         ; Expire
+                         604800 )       ; Negative Cache TTL
+;
+@       IN      NS      projectman.my.id.
+10      IN      PTR     projectman.my.id.
+```
+
+**Langkah 5: Buka Konfigurasi named.conf.local untuk konfigurasi DNS Zones**
+```
+nano named.conf.local
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+//
+// Do any local configuration here
+//
+
+// Consider adding the 1918 zones here, if they are not used in your
+// organization
+//include "/etc/bind/zones.rfc1918";
+
+zone "projectman.my.id" {
+        type master;
+        file "/etc/bind/db.forward";
+};
+zone "20.168.192.in-addr.arpa" {
+        type master;
+        file "/etc/bind/db.reverse";
+};
+```
+
+**Langkah 6: Konfigurasi Forwarders**
+```
+nano named.conf.options
+```
+**Tambahkan DNS Forwarders**
+```
+options {
+        directory "/var/cache/bind";
+
+        // If there is a firewall between you and nameservers you want
+        // to talk to, you may need to fix the firewall to allow multiple
+        // ports to talk.  See http://www.kb.cert.org/vuls/id/800113
+
+        // If your ISP provided one or more IP addresses for stable
+        // nameservers, you probably want to use them as forwarders.
+        // Uncomment the following block, and insert the addresses replacing
+        // the all-0's placeholder.
+
+        // forwarders {
+        //      192.168.20.2;
+        //      8.8.8.8;
+        // };
+
+        //========================================================================
+        // If BIND logs error messages about the root key being expired,
+        // you will need to update your keys.  See https://www.isc.org/bind-keys
+        //========================================================================
+        dnssec-validation auto;
+
+        listen-on-v6 { any; };
+};
+```
+
+**Langkah 7: Konfigurasi DNS diperangkat Server**
+```
+nano /etc/resolv.conf
+```
+**Ubahlah Konfigurasi seperti dibawah ini:**
+```
+domain projectman.my.id
+search projectman.my.id
+nameserver 192.168.20.2
+nameserver 8.8.8.8
+```
+**Langkah 8: Restart Layanan BIND9**
+```
+systemctl restart bind9
+```
+
+#### B. Pengetesan Konfigurasi DNS
+**Langkah 1: Instalasi DNS Resolver**
+```
+apt-get install dnsutils
+```
+
+**Langkah 2: Test DNS**
+```
+root@VM2:/etc/bind# nslookup projectman.my.id
+Server:         192.168.20.2
+Address:        192.168.20.2#53
+
+Name:   projectman.my.id
+Address: 192.168.20.2
+
+root@VM2:/etc/bind# nslookup 192.168.20.2
+2.20.168.192.in-addr.arpa     name = projectman.my.id.
+```
+
 ### 6. Instalasi dan Konfigurasi Port Knocking(Knockd)
+
+
+### A. Instalasi Kncokd
 
 **Langkah 1: Instalasi knockd**
 ```
@@ -1178,7 +1633,10 @@ systemctl restart knockd
 systemctl enable knockd
 ```
 
+
 ### 7. Instalasi dan Konfigurasi Monitoring Log Server(Loki,Promtail,Rsyslog)
+
+### A. Instalasi Loki& Promtail
 
 **Langkah 1: Instalasi Paket-Paket Yang diperlukan**
 ```
@@ -1282,9 +1740,9 @@ ruler:
 anda bisa mengganti port atau path penyimpanan log dari Loki
 
 **Langkah 7: Buka halaman http://Domain atau IP anda:3100/metrics**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/0a338d52-cc53-4f59-94c8-ecb7e5699396)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/ab856e8f-4235-443b-be0b-c6f3a32014a5)
 
-### R. Visualisasi Log Ke Grafana
+### B. Visualisasi Log Ke Grafana
 
 **Langkah 1: Enable Grafana**
 ```
@@ -1320,47 +1778,45 @@ systemctl restart grafana-server
 ```
 **Langkah 5: Login ke Grafana**
 
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/a435d5a9-9924-4d9e-b3c3-6c6ca2b86dc6)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/1ae7d71c-17b4-4e5e-ae23-6070ee4485d3)
 Login = "admin password="admin"
 
 **Langkah 6: Add Data Source**
 
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/100ee0ea-49b0-4caa-8e6f-cdccfa0c1f23)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/92aff166-f66d-443d-b958-cf36bda9e2ac)
 'Home > Connection > Data Source
 
 **Langkah 7: Search Loki**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/575fb6eb-234a-4aef-ba0f-2958f90de77f)
-
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/4202a014-48da-4504-b090-a50f4532f102)
 
 **Langkah 8: Tambahkan URL dimana Loki Berjalan**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/85ec4f0f-3472-4cc8-86ba-23f4ab8b2ba9)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/acf063e9-30f6-4fe9-8454-5e808825e564)
+
 
 **Langkah 8: Membuat Dashboard baru**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/e4ca5831-1191-4eeb-85a4-2119bc691a4f)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/fcacae1f-41cd-4adc-90cd-8cf824ea285c)
+
 
 **Langkah 9: Pilih Data Source Loki**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/920de707-b538-4e30-9936-c7777b334279)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/715b9a54-4290-4e9b-b3d2-4ed121646d25)
+
 
 Kemudian pada bagian Label Filters : Pilih "job/filename" kemudian pilih "varlogs"
 
 **Langkah 10: Klik Visualisation dan pilih Logs**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/fff6d720-3647-4667-b9d2-b2a946b3ab75)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/26726a9e-0801-4499-aecf-2c9ec9a4a266)
 kemudian klik "run Query"
 
 **Langkah 11:Klik Apply dan save untuk Membuat Dashboard**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/02e5d46e-68ee-4ac7-a21e-5ceff966dd38)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/1d2db53e-7ab4-4fe5-a67f-f09f8e4516e2)
+
 
  Sekarang Muncul sebuah Tampilan Log,dimana anda bisa explore dan membuat dashboard Log anda sendiri
 
 **Langkah 12: ini Dashoard Dari Monitoring Logs nya**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/c3b2f42b-6df0-4e53-93f3-47c9f9c26714)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/64aa9451-7c2c-4eda-a60e-fa76658f4901)
 
-
-
-
-
-### S. Mengamankan Grafana dengan UFW dan SSL Cerfificate
-
+### C. Mengamankan Grafana dengan UFW dan SSL Cerfificate
 
 **Langkah 1: Membuat Self Singed Certificate**
 ```
@@ -1472,7 +1928,8 @@ Certificate:
     Signature Algorithm: sha256WithRSAEncryption
 ```
 **Langkah 9: Cek halaman Homepage Grafana**
-![image](https://github.com/Fenrir717/Projectman-example/assets/147627144/eaab821d-b302-4b45-b1b8-82b8d484c22c)
+![image](https://github.com/Xzhacts-Crew/ProjectMen/assets/147627144/9ee0c03b-708f-489f-b33a-514433d994b9)
+
 
 **Langkah 10: Mengamankan Grafana dan Metrics dari Promtail dengan ufw**
 ```
@@ -1482,12 +1939,10 @@ ufw reload
 ```
 jadi Hanya Subnet dari VPN saja yang bisa Mengakses Monitoring Log Server nya
 
-### T. Instalasi dan Konfigurasi DNS Server(bind9)
 
+## 3. Konfigurasi Server Backup VM3
 
-### 3.0 Konfigurasi Server Backup VM3
-
-### Konfigurasi Adapter Network VM3
+### A. Konfigurasi Adapter Network VM3
 
 **Langkah 1: Buka Direktori utama interfaces**
 ```
@@ -1519,7 +1974,8 @@ iface enp0s3 inet static
 systemctl restart networking
 ```
 
-### 4.1 Instalasi Rsync
+
+### B. Instalasi Rsync
 
 **Langkah 1: Instalasi paket Rsync dan Mariadb-Client& cron di server utama(10.10.10.1)**
 ```
@@ -1791,6 +2247,11 @@ jadi script akan terjadwalkan setiap seminggu sekali yang,akan menghapus file ba
 ```
 crontab -l
 ```
+
+
+
+
+
 
 
 
